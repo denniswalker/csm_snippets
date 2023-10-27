@@ -1,8 +1,8 @@
 # Text Expansion for CSM
 
-This repo provides a text expansion configuration simplifying some of the more
-complex CLI commands necessary for administering a CSM environment. Examples of
-this include:
+Provides a text expansion configuration simplifying some of the more complex CLI
+commands necessary for administering a CSM environment. Examples of this
+include:
 
 1. Connecting to a node's console
 1. Determining available firmware versions for a node
