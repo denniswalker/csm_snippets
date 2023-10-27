@@ -1,0 +1,173 @@
+---
+# espanso match file
+# For a complete introduction, visit the official docs at: https://espanso.org/docs/
+# You can use this file to define the base matches (aka snippets)
+# that will be available in every application when using espanso.
+# Matches are substitution rules: when you type the "trigger" string
+# it gets replaced by the "replace" string.
+matches:
+  # CSM
+  - trigger: :Auth-gettoken
+    label: Auth - get openid connect token
+    replace: export TOKEN=$(curl -s -S -d grant_type=client_credentials -d client_id=admin-client
+      -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}'
+      | base64 -d` https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token
+      | jq -r '.access_token')
+  - trigger: :PCS-state
+    label: PCS - Get the power state for an xname
+    form: >
+      cray power status describe [[xname]]
+  - trigger: :PCS-on
+    label: PCS - Turn on the xname
+    form: >
+      cray power transition on --xnames [[xname]]
+  - trigger: :CAPMC-state
+    label: CAPMC - show the power state for an xname
+    form: >
+      cray capmc get_xname_status create --xnames [[xname]]
+  - trigger: :BOS-pending
+    label: BOS - show pending sessions
+    replace: cray bos sessions list --status pending
+  - trigger: :BOS-session
+    label: BOS - describe a session by name or UUID
+    form: >
+      cray bos sessions describe [[name_or_uuid]]
+  - trigger: :BOS-template
+    label: BOS - describe a session template by name or UUID
+    form: >
+      cray bos sessiontemplates describe [[name_or_uuid]]
+  - trigger: :BOSv1-rebootnode
+    label: BOSv1 - reboot a node with template
+    form: >
+      cray bos sessions create --limit [[xname]] --name [[name_this_session]] --template-name
+      [[sessiontemplate_name_or_id]] --operation reboot -vvv
+  - trigger: :BOSv1-session
+    label: BOSv1 - describe a session by UUID
+    form: >
+      cray bos v1 session describe [[uuid]]
+  - trigger: :SAT-bootstatus
+    label: SAT - get boot status for a node
+    form: >
+      sat -u $(whoami) status --format json --fields 'Boot Status,State' --filter
+      xname=[[xname]]
+  - trigger: :FAS-listfw-for-model
+    label: FAS - list firmware for a given Model (see :Redfish-nodeinfo)
+    replace: >
+      cray fas images list --format json | jq -c '.[] | .[] | select(.models | index("[[mode_name]]"))
+      | {version: .firmwareVersion, url: .s3URL}' | awk '!fw[$0]++ { print $0 }' |
+      sort | jq -s .
+  - trigger: :HSM-xname
+    label: HSM - Describe an xname
+    form: >
+      cray hsm state components describe [[xname]]
+  - trigger: :HSM-findavailablenode
+    label: HSM - find an available node
+    replace: cray hsm state components list --role Compute --state Off --arch X86
+      --enabled true --flag OK --format json | jq '.[] | reverse | first'
+  - trigger: :HSM-locked?
+    label: HSM - show if the node is locked
+    replace: cray hsm locks status list --locked true --format json | jq '.Components[]
+      | select(.ID | contains(""))'
+  - trigger: :Redfish-nodeinfo
+    label: Redfish - display node information
+    form: >
+      curl -s -k -u [[user]]:[[pass]] https://[[xname_of_blade]]/redfish/v1/Systems/Node[[node_number]]
+      | jq '{Description: .Description, BiosVersion: .BiosVersion, Model: .Model,
+      PartNumber: .PartNumber, SerialNumber: .SerialNumber}'
+  - trigger: :VCS-creds
+    label: VCS - populate credentials in env vars
+    replace: VCS_USER=$(kubectl get secret -n services vcs-user-credentials --template="{{.data.vcs_username}}"
+      | base64 --decode); VCS_PASS=$(kubectl get secret -n services vcs-user-credentials
+      --template="{{.data.vcs_password}}" | base64 --decode)
+  - trigger: VCS-clonerepo
+    label: VCS - clone a repo with populate credentials
+    replace: git clone https://"${VCS_USER}":"${VCS_PASS}"@api-gw-service-nmn.local/vcs/cray/"${VCS_REPO}"
+  - trigger: :CFS-describesession
+    label: CFS - describe a session by name or UUID
+    replace: cray cfs sessions describe
+  - trigger: :CFS-customizeimage
+    label: CFS - customize an image with a given CFS configuration
+    replace: >
+      cray cfs sessions create --name {{form1.session_name}} --configuration-name
+      {{form1.cfs_config}} --target-definition image --target-group {{form1.target_group}}
+      {{form1.ims_base_image_id}} --ansible-verbosity 3 --format json
+    vars:
+      - name: form1
+        type: form
+        params:
+          layout: |
+            Name this CFS customization session: [[session_name]]
+            Name of existing CFS configuration to use: [[cfs_config]]
+            ID of existing image to start from: [[ims_base_image_id]] 
+            What type of node is this image going to be used for? [[target_group]]
+          fields:
+            target_group:
+              default: Compute
+  - trigger: :CFS-logs
+    label: CFS - show logs for a session by name or UUID
+    form: >
+      kubectl -n services logs job/$(cray cfs sessions describe [[name_or_uuid]] --format
+      json | jq -r '.status.session.job') -c ansible | less
+  - trigger: :CFS-showsessions-onxname
+    label: CFS - show all sessions that have run on a node.
+    form: >
+      cray cfs sessions list --format json | jq 'sort_by(.status.session.startTime)
+      | .[] | select(.ansible.limit == "[[xname]]") | {bos_session: .tags.bos_session,
+      start: .status.session.startTime, completion: .status.session.completionTime}'
+  - trigger: :CFS-personalization-frombos
+    label: CFS - describe a personalization session linked to a BOS UUID
+    form: >
+      cray cfs sessions list --format json | jq -r '.[] | select(.tags.bos_session
+      == "[[bos_UUID_or_name]]")'
+  - trigger: :Nexus-creds
+    label: Nexus - load credentials into env vars
+    replace: NEXUS_USERNAME="$(kubectl -n nexus get secret nexus-admin-credential
+      -o jsonpath='{.data.username}' | base64 -d)"; NEXUS_PASSWORD="$(kubectl -n nexus
+      get secret nexus-admin-credential -o jsonpath='{.data.password}' | base64 -d)";
+  - trigger: :Nexus-repos
+    label: Nexus - list repositories
+    replace: curl -s https://packages.local/service/rest/v1/repositories | jq -r '.[].name'
+      | sort
+  - trigger: :Nexus-repocontents
+    label: Nexus - list artifacts in repo
+    form: >
+      curl -s https://packages.local/service/rest/v1/assets?repository=[[repo]] |
+      jq -r '.items[].path'
+  - trigger: :Nexus-rpms-in-repos-startingwith
+    label: Nexus - show all assets in repos starting with
+    form: >
+      for REPO in $(curl -s https://packages.local/service/rest/v1/repositories |
+      jq -r '.[].name' | sort | grep [[repo_name]]);do curl -s https://packages.local/service/rest/v1/assets?repository=$REPO
+      | jq -r '.items[].downloadUrl';done | grep -v repodata | tee -a [[log_name]]_packages
+  - trigger: :Nexus-uploadrpm
+    label: Nexus - upload an RPM to a repo (requires BASEURL env var)
+    replace: >
+      curl -v -s -u "$NEXUS_USERNAME:$NEXUS_PASSWORD" --upload-file "{{repo.path_to_rpm}}"
+      "${BASEURL}/repository/{{repo.repo_name}}/packages/$(basename {{repo.path_to_rpm}})"
+    vars:
+      - name: repo
+        type: form
+        params:
+          layout: |
+            What is the name of the repo to upload to? [[repo_name]]
+            What is the full path including name of the file? [[path_to_rpm]]
+          fields:
+            path_to_rpm:
+              multiline: true
+  - trigger: :IMS-manual
+    label: IMS - Provision a chroot with SSH access for manual modification
+    form: >
+      cray ims jobs create --job-type customize --image-root-archive-name [[root_archive]]
+      --kernel-file-name vmlinuz --artifact-id [[artifact_id]] --public-key-id [[public_key_id]]
+      --enable-debug False
+  - trigger: :Console-into
+    label: Console - connect to a xname
+    replace: kubectl -n services exec -it $(kubectl -n services exec -it $(kubectl
+      get pods -n services -o wide | grep cray-console-node | awk '{print $1}') -c
+      cray-console-operator --sh -c "/app/get-node {{node.xname}}" | jq -r .podname)
+      -c cray-console -- conman -j {{node.xname}}
+    vars:
+      - name: node
+        type: form
+        params:
+          layout: Which xname do you want to console into? [[xname]]
