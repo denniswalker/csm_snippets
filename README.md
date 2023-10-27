@@ -9,7 +9,8 @@ include:
 1. Getting VCS credential and cloning a vcs repo.
 1. Finding an unused node.
 
-and many more.
+and many, many more. Consult the [matchers configuration](./match/base.yml) for
+the comprehensive list.
 
 ## Dependency on Espanso
 
