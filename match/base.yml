@@ -164,12 +164,25 @@ matches:
       cray ims jobs create --job-type customize --image-root-archive-name [[root_archive]]
       --kernel-file-name vmlinuz --artifact-id [[artifact_id]] --public-key-id [[public_key_id]]
       --enable-debug False
+  - trigger: :Console-wo-operator
+    label: Console - connect to xname w/o operator lookup
+    replace: for CONSOLE_NODE in $(kubectl -n services get pods -l app.kubernetes.io/name=cray-console-node
+      -o name --no-headers); do if kubectl -n services exec -it $CONSOLE_NODE -c cray-console-node
+      -- sh -c "conman -q | grep {{node.xname}}" 2>/dev/null; then echo "Found console
+      session for {{node.xname}}. When complete, end the session by typing '&.'.";
+      kubectl -n services exec -it $CONSOLE_NODE -c cray-console-node -- conman -j
+      {{node.xname}}; fi; done
+    vars:
+      - name: node
+        type: form
+        params:
+          layout: Which xname do you want to console into? [[xname]]
   - trigger: :Console-into
     label: Console - connect to a xname
     replace: kubectl -n services exec -it $(kubectl -n services exec -it $(kubectl
-      get pods -n services -o wide | grep cray-console-node | awk '{print $1}') -c
-      cray-console-operator --sh -c "/app/get-node {{node.xname}}" | jq -r .podname)
-      -c cray-console -- conman -j {{node.xname}}
+      -n services get pods -l app.kubernetes.io/name=cray-console-operator -o NAME
+      --no-headers | head -1) -c cray-console-operator -- sh -c "/app/get-node {{node.xname}}"
+      | jq -r .podname) -c cray-console -- conman -j {{node.xname}}
     vars:
       - name: node
         type: form
