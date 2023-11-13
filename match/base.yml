@@ -154,6 +154,10 @@ matches:
           fields:
             path_to_rpm:
               multiline: true
+  - trigger: :IMS-get-id
+    label: IMS - Get id for an image name containing a string
+    form: >
+      cray ims images list --format json | jq -r ".[] | select(.name | contains(\"[[image_name]]\")).id"
   - trigger: :IMS-manual
     label: IMS - Provision a chroot with SSH access for manual modification
     form: >
@@ -171,3 +175,8 @@ matches:
         type: form
         params:
           layout: Which xname do you want to console into? [[xname]]
+  - trigger: :SCSD-get-bmc-cred
+    label: SCSD - get BMC credential for node
+    form: >-
+      cray scsd bmc creds list --format json | jq -r '.[] | .[] | select(.Xname ==
+      "[[xname]]")'
