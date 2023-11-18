@@ -82,9 +82,18 @@ matches:
   - trigger: VCS-clonerepo
     label: VCS - clone a repo with populate credentials
     replace: git clone https://"${VCS_USER}":"${VCS_PASS}"@api-gw-service-nmn.local/vcs/cray/"${VCS_REPO}"
+  - trigger: :CFS-session-from-bos
+    label: CFS - Lookup a session associated to a BOS session id
+    form: cray cfs sessions list --tags bos_session=[[bos_uuid]] --format json | jq
+      '.[]'
   - trigger: :CFS-describesession
     label: CFS - describe a session by name or UUID
     replace: cray cfs sessions describe
+  - trigger: :CFS-show-configurations
+    label: CFS - show configurations sorted by recent updates
+    replace: >
+      cray cfs configurations list --format json | jq -c '. | sort_by(.lastUpdated)
+      | reverse | .[] | {name: .name, updated: .lastUpdated}'
   - trigger: :CFS-customizeimage
     label: CFS - customize an image with a given CFS configuration
     replace: >
@@ -113,7 +122,8 @@ matches:
     form: >
       cray cfs sessions list --format json | jq 'sort_by(.status.session.startTime)
       | .[] | select(.ansible.limit == "[[xname]]") | {bos_session: .tags.bos_session,
-      start: .status.session.startTime, completion: .status.session.completionTime}'
+      start: .status.session.startTime, completion: .status.session.completionTime,  cfs_job:
+      .status.session.job}'
   - trigger: :CFS-personalization-frombos
     label: CFS - describe a personalization session linked to a BOS UUID
     form: >
