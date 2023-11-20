@@ -192,7 +192,7 @@ matches:
     replace: kubectl -n services exec -it $(kubectl -n services exec -it $(kubectl
       -n services get pods -l app.kubernetes.io/name=cray-console-operator -o NAME
       --no-headers | head -1) -c cray-console-operator -- sh -c "/app/get-node {{node.xname}}"
-      | jq -r .podname) -c cray-console -- conman -j {{node.xname}}
+      | jq -r .podname) -c cray-console-node -- conman -j {{node.xname}}
     vars:
       - name: node
         type: form
