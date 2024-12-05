@@ -6,7 +6,56 @@
 # Matches are substitution rules: when you type the "trigger" string
 # it gets replaced by the "replace" string.
 matches:
+  # SMA
+  - trigger: :SMA_search_logs
+    label: SMA - search logs
+    form: >
+      kubectl -n sma exec -t opensearch-masters-0 -c opensearch -- curl -s -XGET "https://localhost:9200/_search"
+      -u admin:admin --insecure -H 'Content-Type: application/json' -d"{\"query\":{\"query_string\":{\"query\":\"hostname:[[hostname]]
+      AND message:[[message]]\"}}}" | jq -rc '.hits.hits | map({"date_time": ._source.timereported,
+      "message": ._source.message}) | sort_by(.date_time) | reverse | .[]'
   # CSM
+  - trigger: :Customizations_yaml
+    label: Customization - Get yaml
+    form: >
+      kubectl get secret site-init -n loftsman -o jsonpath='{.data.customizations\.yaml}'
+      | base64 -d
+  - trigger: :Keycloak-admin-pass
+    label: Keycloak - get admin password
+    form: >
+      kubectl get secret -n services keycloak-master-admin-auth -ojsonpath='{.data.password}'
+      | base64 -d
+  - trigger: :Alertmgr-show-crits
+    label: Alertmgr - show critical alerts
+    form: >
+      alertmgr="$(dig +short cray-sysmgmt-health-promet-alertmanager.sysmgmt-health.svc.cluster.local
+      @10.16.0.10)" curl -s  http://"$alertmgr":9093/api/v2/alerts/groups | jq -c
+      '.[].alerts[] | select(.labels.severity == "critical") | {alert: .labels.alertname,
+      instance: .labels.instance, target: .labels.target, message: .annotations.message}'
+  - trigger: :BOS-reboot-off-nodes
+    label: BOS - reboot all off nodes
+    form: >
+      cray bos sessions create --template-name [[session_template]] --operation reboot
+      --limit $(sat status --filter state=off --filter subrole=[[subrole]] --filter
+      enabled=true
+      --no-border --no-headings --fields xname | xargs | sed 's| |,|g')
+  - trigger: :DVS-check-inactive
+    label: DVS - check the inactive node lists on computes
+    form: >
+      sudo clush -g cn -b "cat /sys/kernel/debug/dvs/mounts/*/mount | tail -4 | grep
+      inactive_nodes"
+  - trigger: :n2x
+    label: Lookup xname for nid name
+    form: >
+      sudo sat status
+      --format json 2>/dev/null | jq -r "map(select(.Aliases == \"[[alias_name]]\"))
+      | .[].xname"
+  - trigger: :NCN-no-wipe
+    label: NCN - check the metal.no-wipe kernel param
+    form: >
+      sudo cray bss bootparameters list --hosts $(sudo sat status --filter "role=management"
+      --format json 2>/dev/null | jq -r "map(select(.Aliases == \"[[ncn_name]]\"))
+      | .[].xname") --format json | jq -r '.[].params' | sed 's| |\n|g' | grep no-wipe
   - trigger: :Auth-gettoken
     label: Auth - get openid connect token
     replace: export TOKEN=$(curl -s -S -d grant_type=client_credentials -d client_id=admin-client
@@ -82,6 +131,30 @@ matches:
   - trigger: VCS-clonerepo
     label: VCS - clone a repo with populate credentials
     replace: git clone https://"${VCS_USER}":"${VCS_PASS}"@api-gw-service-nmn.local/vcs/cray/"${VCS_REPO}"
+  - trigger: :CFS-create-session
+    label: CFS - create a session testing a cfs change on a single node.
+    form: >
+      cray cfs sessions create --name dw-test --configuration-name "[[name_of_config]]"
+      --configuration-limit [[cfs_layer]] --ansible-limit [[xname]] --ansible-verbosity
+      2
+  - trigger: :CFS-get-all-failed-logs
+    label: CFS - download all failed logs into folder
+    form: >
+      for this_cfs in $(kubectl -n services get pods | grep cfs | grep Error | cut
+      -d " " -f 1); do kubectl -n services logs "$this_cfs" -c ansible > "$this_cfs".log;
+      done
+  - trigger: :CFS-show-errors-in-logs
+    label: CFS - show errors in logs
+    form: >
+      for logfile in *.log; do awk -v logfile="$logfile" '/TASK/ { last_task=$0 }
+      /fatal/ { buffer=""; for (i=1; i<=5; i++) { getline line; buffer = buffer "\n"
+      line }; if (buffer !~ /ignoring/ && buffer !~ /ansible_facts/ && last_task !=
+      "") print "Log File: " logfile "\n" last_task "\n" $0 buffer }' "$logfile";
+      done
+  - trigger: :CFS-rerun
+    label: CFS - rerun personalization
+    form: >
+      cray cfs components update --error-count 0 --state '[]' --format json "[[xname]]"
   - trigger: :CFS-session-from-bos
     label: CFS - Lookup a session associated to a BOS session id
     form: cray cfs sessions list --tags bos_session=[[bos_uuid]] --format json | jq
@@ -115,8 +188,9 @@ matches:
   - trigger: :CFS-logs
     label: CFS - show logs for a session by name or UUID
     form: >
-      kubectl -n services logs job/$(cray cfs sessions describe [[name_or_uuid]] --format
-      json | jq -r '.status.session.job') -c ansible | less
+      kubectl -n services logs $(kubectl -n services get pods -o name | grep $(cray
+      cfs sessions describe [[cfs_session_name]] --format json | jq -r '.status.session.job'))
+      -c ansible | less
   - trigger: :CFS-showsessions-onxname
     label: CFS - show all sessions that have run on a node.
     form: >
