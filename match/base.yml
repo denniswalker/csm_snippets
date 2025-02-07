@@ -6,6 +6,24 @@
 # Matches are substitution rules: when you type the "trigger" string
 # it gets replaced by the "replace" string.
 matches:
+  # IPMI
+  - trigger: :IPMI_power_off
+    label: IPMI - power off
+    form: >
+      ipmitool -I lanplus -U [[user]] -P [[password]] -H [[xname]] power off
+  - trigger: :IPMI_power_on
+    label: IPMI - power on
+    form: >
+      ipmitool -I lanplus -U [[user]] -P [[password]] -H [[xname]] power on
+  - trigger: :IPMI_sol
+    label: IPMI - sol activate
+    form: >
+      ipmitool -I lanplus -U [[user]] -P [[password]] -H [[xname]] sol activate
+  - trigger: :IPMI_reboot_to_disk
+    label: IPMI - reboot to disk
+    form: >
+      ipmitool -I lanplus -U [[user]] -P [[password]] -H [[xname]] chassis bootdev
+      disk options=efiboot
   # SMA
   - trigger: :SMA_search_logs
     label: SMA - search logs
@@ -15,6 +33,16 @@ matches:
       AND message:[[message]]\"}}}" | jq -rc '.hits.hits | map({"date_time": ._source.timereported,
       "message": ._source.message}) | sort_by(.date_time) | reverse | .[]'
   # CSM
+  - trigger: :Vault_get_unseal_key
+    label: Vault - get unseal keys
+    form: >
+      export VAULT_TOKEN=$(kubectl get secrets cray-vault-unseal-keys -n vault -o
+      jsonpath={.data.vault-root} | base64 -d)
+  - trigger: :Vault_run_command
+    label: Vault - run command
+    form: >
+      kubectl -n vault exec -it cray-vault-0 -c vault -- sh -c "VAULT_ADDR=http://localhost:8200
+      VAULT_TOKEN=$VAULT_TOKEN vault [[subcommands]]"
   - trigger: :Customizations_yaml
     label: Customization - Get yaml
     form: >
