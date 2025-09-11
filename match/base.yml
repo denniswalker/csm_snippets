@@ -6,6 +6,22 @@
 # Matches are substitution rules: when you type the "trigger" string
 # it gets replaced by the "replace" string.
 matches:
+  # Kubernetes snippets
+  - trigger: :K8s_Delete_Unhealthy_Pods
+    label: Delete unhealthy k8s pods
+    form: >
+      while IFS=' ' read -r namespace pod; do kubectl -n "$namespace" delete pod "$pod";
+      done <<< $(kubectl get pods -A --no-headers | grep -vE "Running|Completed|Init"
+      | awk '{print $1 " " $2}')
+  # Compute node root iscsi mount check
+  - trigger: :iSCSI_root_check
+    label: Compute Node iSCSI root mount check
+    form: >
+      multipath -l $(grep -oP '(?<=\")[^"]+rootfs(?=\")' /etc/multipath.conf) > /tmp/root_mp
+      2>/dev/null; for this_blkdevice in $(lsblk -J | jq -r '.blockdevices | map(select(.type
+      == "disk")) | map(select(has("children"))) | map(select(.children[0].name |
+      endswith("rootfs"))) | .[].name'); do  ls -l /dev/disk/by-path/ | egrep "${this_blkdevice}$"
+      >> /tmp/root_mp; done; cat /tmp/root_mp
   # IPMI
   - trigger: :IPMI_power_off
     label: IPMI - power off
@@ -266,6 +282,14 @@ matches:
           fields:
             path_to_rpm:
               multiline: true
+  - trigger: :IMS-customize-root-on-nid
+    label: IMS - customize by hand an image booted on node
+    form: >
+      export NODE_NAME="[[nid_name]]"; export IMG_ID=$(sat status --no-borders --no-headings
+      --filter="Aliases=${NODE_NAME}" --fields="Most Recent Image" | xargs); cray
+      ims jobs create --job-type customize --public-key-id "$(cray ims public-keys
+      list --format json | jq -r 'max_by(.created) | .id')" --artifact-id "$IMG_ID"
+      --image-root-archive-name customize_"${IMG_ID}"
   - trigger: :IMS-get-id
     label: IMS - Get id for an image name containing a string
     form: >
