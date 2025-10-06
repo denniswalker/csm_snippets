@@ -22,6 +22,14 @@ matches:
       == "disk")) | map(select(has("children"))) | map(select(.children[0].name |
       endswith("rootfs"))) | .[].name'); do  ls -l /dev/disk/by-path/ | egrep "${this_blkdevice}$"
       >> /tmp/root_mp; done; cat /tmp/root_mp
+  - trigger: :iSCSI_luns_consistency_check
+    label: Check if LUNs are the same across all NCNs
+    form: >
+      for ncn in $(kubectl get nodes -o custom-columns=NAME:.metadata.name --no-headers
+      | grep -v m); do ssh "$ncn" "sudo targetcli ls | grep -i 'LUN'" > "${ncn}-luns";
+      done; for luns_file in ncn*-luns; do if [[ -z "$base_file" ]]; then base_file="$luns_file";
+      continue; fi; echo "Comparing ${base_file} to ${luns_file}..."; diff -u -- "$base_file"
+      "$luns_file"; base_file="$luns_file"; done
   # IPMI
   - trigger: :IPMI_power_off
     label: IPMI - power off
