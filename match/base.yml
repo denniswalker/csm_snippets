@@ -22,6 +22,14 @@ matches:
       == "disk")) | map(select(has("children"))) | map(select(.children[0].name |
       endswith("rootfs"))) | .[].name'); do  ls -l /dev/disk/by-path/ | egrep "${this_blkdevice}$"
       >> /tmp/root_mp; done; cat /tmp/root_mp
+  - trigger: :iSCSI_list_block_devices_by_lun
+    label: On Compute, list block devices to target/luns
+    form: >
+      for s in /sys/class/iscsi_session/session*; do iqn=$(cat "$s/targetname"); addr=$(cat
+      "$s"/connection*/persistent_address 2>/dev/null); port=$(cat "$s"/connection*/persistent_port
+      2>/dev/null); for t in "$s"/device/target*; do for l in "$t"/*:*:*:*; do lun=${l##*:};
+      for b in "$l"/block/*; do dev=${b##*/}; echo /dev/$dev "$addr:$port" "$iqn"
+      "LUN=$lun"; done; done; done; done
   - trigger: :iSCSI_luns_consistency_check
     label: Check if LUNs are the same across all NCNs
     form: >
