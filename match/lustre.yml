@@ -1,0 +1,213 @@
+---
+# Lustre text expansions
+matches:
+  # File System Management
+  - trigger: :Lustre_lfs_df
+    label: Lustre - show filesystem usage
+    form: lfs df [[filesystem]]
+
+  - trigger: :Lustre_lfs_df_human
+    label: Lustre - show filesystem usage (human readable)
+    form: lfs df -h [[filesystem]]
+
+  - trigger: :Lustre_lfs_df_stripe
+    label: Lustre - show stripe usage per OST
+    form: lfs df -o [[filesystem]]
+
+  - trigger: :Lustre_lfs_mdf
+    label: Lustre - show MDT usage
+    form: lfs df -M [[filesystem]]
+
+  # Stripe Operations
+  - trigger: :Lustre_lfs_stripe
+    label: Lustre - show stripe information
+    form: lfs find -k [[filesystem_path]]
+
+  - trigger: :Lustre_lfs_setstripe
+    label: Lustre - set stripe parameters
+    form: >
+      lfs setstripe -c [[count]] -s [[stripe_size]] -i [[index]] [[filepath]]
+
+  - trigger: :Lustre_lfs_setstripe_random
+    label: Lustre - set random striping
+    form: lfs setstripe -r [[filepath]]
+
+  - trigger: :Lustre_lfs_setstripe_single
+    label: Lustre - set single stripe
+    form: lfs setstripe -c 1 [[filepath]]
+
+  - trigger: :Lustre_lfs_getstripe
+    label: Lustre - get stripe information
+    form: lfs getstripe [[filepath]]
+
+  - trigger: :Lustre_lfs_mkdir
+    label: Lustre - create directory with striping
+    form: lfs mkdir -c [[count]] -s [[stripe_size]] [[directory_path]]
+
+  # File Operations
+  - trigger: :Lustre_lfs_cpdcp
+    label: Lustre - copy file with cp
+    form: lfs cp [[source]] [[destination]]
+
+  - trigger: :Lustre_lfs_mkdir_template
+    label: Lustre - create directory with template
+    form: lfs mkdir -t [[template_file]] [[directory_path]]
+
+  - trigger: :Lustre_lfs_find_ost
+    label: Lustre - find files on specific OST
+    form: lfs find -n [[ost_name]] [[filesystem_path]]
+
+  - trigger: :Lustre_lfs_find_size
+    label: Lustre - find files by size range
+    form: lfs find -g [[min_size]] [[max_size]] [[filesystem_path]]
+
+  - trigger: :Lustre_lfs_rrd
+    label: Lustre - run remote debug
+    form: lfs rdd -o [[ost_index]] [[command]]
+
+  # Network Operations
+  - trigger: :Lustre_lfs_faila
+    label: Lustre - set failover parameters
+    form: >
+      lfs faila -a [[failover_action]] -d [[delay_seconds]] -o [[ost_index]] [[filepath]]
+
+  - trigger: :Lustre_lfs_failost
+    label: Lustre - fail an OST
+    form: lfs failost [[ost_index]] [[filepath]]
+
+  - trigger: :Lustre_lfs_hsm
+    label: Lustre - HSM archive operation
+    form: lfs hsm archive -a [[archive_action]] -b [[bulk]] [[filepath]]
+
+  - trigger: :Lustre_lfs_hsm_release
+    label: Lustre - HSM release operation
+    form: lfs hsm release -a [[archive_action]] [[filepath]]
+
+  # Network and Connectivity
+  - trigger: :Lustre_lctl
+    label: Lustre - lctl common query
+    form: lctl get_param [[param_name]]
+
+  - trigger: :Lustre_lctl_set
+    label: Lustre - lctl set parameter
+    form: lctl set_param [[param_name]]=[[value]]
+
+  - trigger: :Lustre_lctl_nid
+    label: Lustre - show NID information
+    replace: lctl list_nids
+
+  - trigger: :Lustre_lctl_debug
+    label: Lustre - enable debug logging
+    form: >
+      lctl debug_enable [[debug_code]] -f [[facility]]
+
+  - trigger: :Lustre_lctl_nidcheck
+    label: Lustre - check NID connectivity
+    form: lctl nidcheck
+
+  # MGS/MDS Operations
+  - trigger: :Lustre_lfs_mds
+    label: Lustre - show MDS information
+    form: lfs mds [[filesystem]]
+
+  - trigger: :Lustre_lfs_mgs
+    label: Lustre - show MGS information
+    form: lfs mgs [[filesystem]]
+
+  - trigger: :Lustre_lfs_mgss
+    label: Lustre - list MGS targets
+    replace: lfs mgss
+
+  # OSS Operations
+  - trigger: :Lustre_lfs_ost
+    label: Lustre - show OST information
+    form: lfs ost [[filesystem]]
+
+  - trigger: :Lustre_lfs_ost_list
+    label: Lustre - list all OSTs
+    form: lfs ost_list [[filesystem]]
+
+  - trigger: :Lustre_lfs_ost_fail
+    label: Lustre - fail an OST
+    form: lfs ost_fail [[ost_index]] [[filepath]]
+
+  # Health and Monitoring
+  - trigger: :Lustre_lfs_health
+    label: Lustre - run health check
+    form: lfs health [[filesystem]]
+
+  - trigger: :Lustre_lfs_health_detail
+    label: Lustre - run detailed health check
+    form: lfs health --verbose [[filesystem]]
+
+  - trigger: :Lustre_lfs_health_export
+    label: Lustre - export health data to JSON
+    form: lfs health --json > [[output_file]].json
+
+  - trigger: :Lustre_lfs_mds_health
+    label: Lustre - check MDS health
+    form: lfs health --mds [[filesystem]]
+
+  - trigger: :Lustre_lfs_ost_health
+    label: Lustre - check OST health
+    form: lfs health --ost [[filesystem]]
+
+  # Backup and Recovery
+  - trigger: :Lustre_lfs_scrub
+    label: Lustre - run scrub operation
+    form: lfs scrub --start [[filesystem]]
+
+  - trigger: :Lustre_lfs_scrub_status
+    label: Lustre - check scrub status
+    form: lfs scrub --status [[filesystem]]
+
+  - trigger: :Lustre_lfs_scrub_cancel
+    label: Lustre - cancel scrub
+    form: lfs scrub --cancel [[filesystem]]
+
+  - trigger: :Lustre_lfs_mksnap
+    label: Lustre - create snapshot
+    form: lfs snapshot create [[snapshot_name]] [[mount_point]]
+
+  - trigger: :Lustre_lfs_rmsnap
+    label: Lustre - remove snapshot
+    form: lfs snapshot delete [[snapshot_name]]
+
+  - trigger: :Lustre_lfs_listsnap
+    label: Lustre - list snapshots
+    form: lfs snapshot list [[mount_point]]
+
+  # Performance
+  - trigger: :Lustre_lfs_iostat
+    label: Lustre - show I/O statistics
+    form: lfs iostat [[filesystem]]
+
+  - trigger: :Lustre_lfs_io
+    label: Lustre - show I/O patterns
+    form: lfs io -t [[time_period]] [[filesystem]]
+
+  - trigger: :Lustre_lfs_bw
+    label: Lustre - bandwidth test
+    form: >
+      lfs bw -d [[directory]] -s [[file_size]] -c [[count]] -t [[threads]]
+
+  # Miscellaneous
+  - trigger: :Lustre_mount
+    label: Lustre - mount filesystem
+    form: mount -t lustre [[mgs_target]]:[[filesystem]] [[mount_point]]
+
+  - trigger: :Lustre_umount
+    label: Lustre - unmount filesystem
+    form: umount [[mount_point]]
+
+  - trigger: :Lustre_lfs_gdl
+    label: Lustre - list GIDs
+    form: lfs gdl list
+
+  - trigger: :Lustre_lfs_gdl_add
+    label: Lustre - add GID mapping
+    form: lfs gdl add [[gid]] [[username]]
+
+  - trigger: :Lustre_lfs_gdl_remove
+    label: Lustre - remove GID mapping
+    form: lfs gdl remove [[gid]]
