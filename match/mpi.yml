@@ -1,0 +1,156 @@
+---
+# MPI (Message Passing Interface) text expansions
+matches:
+  # Job Launching - mpirun
+  - trigger: :MPI_mpirun
+    label: MPI - run MPI program
+    form: mpirun -np [[num_procs]] [[program]]
+
+  - trigger: :MPI_mpirun_hostfile
+    label: MPI - run with hostfile
+    form: mpirun -np [[num_procs]] --hostfile [[hostfile]] [[program]]
+
+  - trigger: :MPI_mpirun_ppn
+    label: MPI - run with processes per node
+    form: mpirun -np [[num_procs]] -ppn [[ppn]] [[program]]
+
+  - trigger: :MPI_mpirun_hosts
+    label: MPI - run with explicit host list
+    form: mpirun -np [[num_procs]] --host [[host1,host2,...]] [[program]]
+
+  - trigger: :MPI_mpirun_pbs
+    label: MPI - run using PBS nodefile
+    form: mpirun -np [[num_procs]] --hostfile $PBS_NODEFILE [[program]]
+
+  # Job Launching - mpiexec
+  - trigger: :MPI_mpiexec
+    label: MPI - mpiexec run program
+    form: mpiexec -n [[num_procs]] [[program]]
+
+  - trigger: :MPI_mpiexec_ppn
+    label: MPI - mpiexec with processes per node
+    form: mpiexec -n [[num_procs]] -ppn [[ppn]] [[program]]
+
+  - trigger: :MPI_mpiexec_hostfile
+    label: MPI - mpiexec with hostfile
+    form: mpiexec -n [[num_procs]] -f [[hostfile]] [[program]]
+
+  - trigger: :MPI_mpiexec_pbs
+    label: MPI - mpiexec using PBS nodefile
+    form: mpiexec -n [[num_procs]] -f $PBS_NODEFILE [[program]]
+
+  # Process Mapping and Binding (Open MPI)
+  - trigger: :MPI_map_by_node
+    label: MPI - map processes by node
+    form: mpirun -np [[num_procs]] --map-by node [[program]]
+
+  - trigger: :MPI_map_by_socket
+    label: MPI - map processes by socket
+    form: mpirun -np [[num_procs]] --map-by socket [[program]]
+
+  - trigger: :MPI_map_by_core
+    label: MPI - map processes by core
+    form: mpirun -np [[num_procs]] --map-by core [[program]]
+
+  - trigger: :MPI_bind_to_core
+    label: MPI - bind processes to cores
+    form: mpirun -np [[num_procs]] --bind-to core [[program]]
+
+  - trigger: :MPI_bind_to_socket
+    label: MPI - bind processes to sockets
+    form: mpirun -np [[num_procs]] --bind-to socket [[program]]
+
+  - trigger: :MPI_bind_to_none
+    label: MPI - disable process binding
+    form: mpirun -np [[num_procs]] --bind-to none [[program]]
+
+  # Environment
+  - trigger: :MPI_export_env
+    label: MPI - export environment variable to ranks
+    form: mpirun -np [[num_procs]] -x [[VAR_NAME]] [[program]]
+
+  - trigger: :MPI_export_env_value
+    label: MPI - export env variable with value to ranks
+    form: mpirun -np [[num_procs]] -x [[VAR_NAME]]=[[value]] [[program]]
+
+  # Compilation
+  - trigger: :MPI_mpicc
+    label: MPI - compile C program
+    form: mpicc -o [[output]] [[source.c]] [[flags]]
+
+  - trigger: :MPI_mpicxx
+    label: MPI - compile C++ program
+    form: mpicxx -o [[output]] [[source.cpp]] [[flags]]
+
+  - trigger: :MPI_mpif90
+    label: MPI - compile Fortran 90 program
+    form: mpif90 -o [[output]] [[source.f90]] [[flags]]
+
+  - trigger: :MPI_mpif77
+    label: MPI - compile Fortran 77 program
+    form: mpif77 -o [[output]] [[source.f]] [[flags]]
+
+  # Info and Diagnostics (Open MPI)
+  - trigger: :MPI_ompi_info
+    label: MPI - show Open MPI build info
+    replace: ompi_info
+
+  - trigger: :MPI_ompi_info_all
+    label: MPI - show all Open MPI parameters
+    replace: ompi_info --all
+
+  - trigger: :MPI_ompi_info_param
+    label: MPI - show specific Open MPI parameter
+    form: ompi_info --param [[framework]] [[component]]
+
+  - trigger: :MPI_ompi_version
+    label: MPI - show Open MPI version
+    replace: ompi_info --version ompi full
+
+  # Info and Diagnostics (MPICH / Intel MPI)
+  - trigger: :MPI_mpichversion
+    label: MPI - show MPICH version
+    replace: mpichversion
+
+  - trigger: :MPI_mpiname
+    label: MPI - show MPI implementation name
+    replace: mpiname -a
+
+  # Intel MPI specific
+  - trigger: :MPI_impi_hydra
+    label: MPI - Intel MPI run with Hydra launcher
+    form: mpirun -bootstrap [[bootstrap]] -np [[num_procs]] -ppn [[ppn]] [[program]]
+
+  - trigger: :MPI_impi_rankfile
+    label: MPI - Intel MPI run with rankfile
+    form: mpirun -np [[num_procs]] -rankfile [[rankfile]] [[program]]
+
+  # Debugging
+  - trigger: :MPI_mpirun_verbose
+    label: MPI - run with verbose output
+    form: mpirun -np [[num_procs]] --mca orte_base_help_aggregate 0 -v [[program]]
+
+  - trigger: :MPI_mpirun_display_map
+    label: MPI - display process map before launching
+    form: mpirun -np [[num_procs]] --display-map [[program]]
+
+  - trigger: :MPI_mpirun_display_devel_map
+    label: MPI - display detailed process map
+    form: mpirun -np [[num_procs]] --display-devel-map [[program]]
+
+  - trigger: :MPI_mpirun_report_bindings
+    label: MPI - report process bindings
+    form: mpirun -np [[num_procs]] --report-bindings [[program]]
+
+  # Tuning
+  - trigger: :MPI_mca_param
+    label: MPI - set MCA parameter at launch
+    form: mpirun -np [[num_procs]] --mca [[param]] [[value]] [[program]]
+
+  - trigger: :MPI_mca_btl
+    label: MPI - set BTL (byte transfer layer)
+    form: mpirun -np [[num_procs]] --mca btl [[btl_list]] [[program]]
+
+  - trigger: :MPI_mca_pml
+    label: MPI - set PML (point-to-point messaging layer)
+    form: mpirun -np [[num_procs]] --mca pml [[pml]] [[program]]

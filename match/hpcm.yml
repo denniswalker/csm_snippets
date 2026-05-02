@@ -1,0 +1,148 @@
+---
+# HPCM (HPE Performance Cluster Manager) text expansions
+matches:
+  # Node Management
+  - trigger: :HPCM_node_list
+    label: HPCM - list all nodes
+    replace: cm node list
+
+  - trigger: :HPCM_node_show
+    label: HPCM - show node details
+    form: cm node show [[node]]
+
+  - trigger: :HPCM_node_status
+    label: HPCM - show node status
+    form: cm node status [[node]]
+
+  - trigger: :HPCM_node_power_on
+    label: HPCM - power on node
+    form: cm node power on [[node]]
+
+  - trigger: :HPCM_node_power_off
+    label: HPCM - power off node
+    form: cm node power off [[node]]
+
+  - trigger: :HPCM_node_power_reset
+    label: HPCM - power reset node
+    form: cm node power reset [[node]]
+
+  - trigger: :HPCM_node_reboot
+    label: HPCM - reboot node
+    form: cm node reboot [[node]]
+
+  - trigger: :HPCM_node_console
+    label: HPCM - open serial console to node
+    form: cm node console [[node]]
+
+  - trigger: :HPCM_node_ssh
+    label: HPCM - SSH into node
+    form: cm node ssh [[node]]
+
+  - trigger: :HPCM_node_ping
+    label: HPCM - ping node
+    form: cm node ping [[node]]
+
+  - trigger: :HPCM_node_add
+    label: HPCM - add a node
+    form: cm node add [[node]]
+
+  - trigger: :HPCM_node_remove
+    label: HPCM - remove a node
+    form: cm node remove [[node]]
+
+  # Image Management
+  - trigger: :HPCM_image_list
+    label: HPCM - list images
+    replace: cm image list
+
+  - trigger: :HPCM_image_show
+    label: HPCM - show image details
+    form: cm image show [[image]]
+
+  - trigger: :HPCM_image_create
+    label: HPCM - create image
+    form: cm image create [[image]]
+
+  - trigger: :HPCM_image_clone
+    label: HPCM - clone image
+    form: cm image clone [[source_image]] [[destination_image]]
+
+  - trigger: :HPCM_image_assign
+    label: HPCM - assign image to node
+    form: cm image assign [[image]] [[node]]
+
+  - trigger: :HPCM_image_delete
+    label: HPCM - delete image
+    form: cm image delete [[image]]
+
+  # Group Management
+  - trigger: :HPCM_group_list
+    label: HPCM - list node groups
+    replace: cm group list
+
+  - trigger: :HPCM_group_show
+    label: HPCM - show group details
+    form: cm group show [[group]]
+
+  - trigger: :HPCM_group_create
+    label: HPCM - create group
+    form: cm group create [[group]]
+
+  - trigger: :HPCM_group_delete
+    label: HPCM - delete group
+    form: cm group delete [[group]]
+
+  - trigger: :HPCM_group_add_node
+    label: HPCM - add node to group
+    form: cm group add-node [[group]] [[node]]
+
+  - trigger: :HPCM_group_remove_node
+    label: HPCM - remove node from group
+    form: cm group remove-node [[group]] [[node]]
+
+  # Service Management
+  - trigger: :HPCM_service_list
+    label: HPCM - list services
+    replace: cm service list
+
+  - trigger: :HPCM_service_status
+    label: HPCM - show service status
+    form: cm service status [[service]]
+
+  - trigger: :HPCM_service_start
+    label: HPCM - start service
+    form: cm service start [[service]]
+
+  - trigger: :HPCM_service_stop
+    label: HPCM - stop service
+    form: cm service stop [[service]]
+
+  - trigger: :HPCM_service_restart
+    label: HPCM - restart service
+    form: cm service restart [[service]]
+
+  # Health and Events
+  - trigger: :HPCM_health
+    label: HPCM - cluster health overview
+    replace: cm health
+
+  - trigger: :HPCM_event_list
+    label: HPCM - list events
+    replace: cm event list
+
+  - trigger: :HPCM_alert_list
+    label: HPCM - list active alerts
+    replace: cm alert list
+
+  # Software Management
+  - trigger: :HPCM_software_list
+    label: HPCM - list installed software
+    replace: cm software list
+
+  - trigger: :HPCM_software_install
+    label: HPCM - install software package
+    form: cm software install [[package]]
+
+  - trigger: :HPCM_software_remove
+    label: HPCM - remove software package
+    form: cm software remove [[package]]

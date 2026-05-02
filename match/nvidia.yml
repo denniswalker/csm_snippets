@@ -1,0 +1,281 @@
+---
+# NVIDIA GPU management text expansions
+# Tools: nvidia-smi, DCGM (dcgmi), nvcc, and related utilities
+matches:
+  # nvidia-smi - Basic Status
+  - trigger: :NV_smi
+    label: nvidia-smi - show GPU status summary
+    replace: nvidia-smi
+
+  - trigger: :NV_smi_watch
+    label: nvidia-smi - continuous monitoring
+    form: nvidia-smi -l [[interval_seconds]]
+
+  - trigger: :NV_smi_list
+    label: nvidia-smi - list GPUs
+    replace: nvidia-smi -L
+
+  - trigger: :NV_smi_topo
+    label: nvidia-smi - show GPU topology matrix
+    replace: nvidia-smi topo -m
+
+  - trigger: :NV_smi_topo_p2p
+    label: nvidia-smi - show P2P access matrix
+    replace: nvidia-smi topo -p2p r
+
+  # nvidia-smi - Custom Queries
+  - trigger: :NV_smi_query
+    label: nvidia-smi - query GPU properties
+    form: >
+      nvidia-smi --query-gpu=[[properties]] --format=csv,noheader,nounits
+
+  - trigger: :NV_smi_query_common
+    label: nvidia-smi - query common GPU metrics
+    replace: >
+      nvidia-smi --query-gpu=index,name,temperature.gpu,utilization.gpu,utilization.memory,memory.used,memory.free,memory.total,power.draw --format=csv,noheader
+
+  - trigger: :NV_smi_query_clocks
+    label: nvidia-smi - query GPU clock speeds
+    replace: >
+      nvidia-smi --query-gpu=index,clocks.gr,clocks.mem,clocks.sm --format=csv,noheader
+
+  - trigger: :NV_smi_query_ecc
+    label: nvidia-smi - query ECC error counts
+    replace: >
+      nvidia-smi --query-gpu=index,ecc.errors.corrected.volatile.total,ecc.errors.uncorrected.volatile.total --format=csv,noheader
+
+  - trigger: :NV_smi_query_procs
+    label: nvidia-smi - query processes using GPUs
+    replace: >
+      nvidia-smi --query-compute-apps=pid,used_gpu_memory,gpu_uuid --format=csv,noheader
+
+  # nvidia-smi - Device Monitoring
+  - trigger: :NV_smi_dmon
+    label: nvidia-smi - device monitoring (dmon)
+    form: nvidia-smi dmon -s [[metrics]] -d [[delay_seconds]]
+
+  - trigger: :NV_smi_dmon_all
+    label: nvidia-smi - dmon all metrics
+    replace: nvidia-smi dmon -s pucvmet
+
+  - trigger: :NV_smi_pmon
+    label: nvidia-smi - process monitoring (pmon)
+    form: nvidia-smi pmon -d [[delay_seconds]]
+
+  # nvidia-smi - Power and Clocks
+  - trigger: :NV_smi_persistence_on
+    label: nvidia-smi - enable persistence mode
+    replace: nvidia-smi -pm 1
+
+  - trigger: :NV_smi_persistence_off
+    label: nvidia-smi - disable persistence mode
+    replace: nvidia-smi -pm 0
+
+  - trigger: :NV_smi_power_limit
+    label: nvidia-smi - set power limit
+    form: nvidia-smi -pl [[watts]] -i [[gpu_id]]
+
+  - trigger: :NV_smi_set_clocks
+    label: nvidia-smi - set application clocks
+    form: nvidia-smi -ac [[mem_mhz]],[[gr_mhz]] -i [[gpu_id]]
+
+  - trigger: :NV_smi_reset_clocks
+    label: nvidia-smi - reset application clocks
+    form: nvidia-smi -rac -i [[gpu_id]]
+
+  - trigger: :NV_smi_auto_boost_off
+    label: nvidia-smi - disable auto boost clocks
+    form: nvidia-smi --auto-boost-default=0 -i [[gpu_id]]
+
+  # nvidia-smi - ECC
+  - trigger: :NV_smi_ecc_on
+    label: nvidia-smi - enable ECC
+    form: nvidia-smi -e 1 -i [[gpu_id]]
+
+  - trigger: :NV_smi_ecc_off
+    label: nvidia-smi - disable ECC
+    form: nvidia-smi -e 0 -i [[gpu_id]]
+
+  - trigger: :NV_smi_ecc_clear
+    label: nvidia-smi - clear ECC error counts
+    form: nvidia-smi -C -i [[gpu_id]]
+
+  # nvidia-smi - MIG (Multi-Instance GPU)
+  - trigger: :NV_smi_mig_on
+    label: nvidia-smi - enable MIG mode
+    form: nvidia-smi -mig 1 -i [[gpu_id]]
+
+  - trigger: :NV_smi_mig_off
+    label: nvidia-smi - disable MIG mode
+    form: nvidia-smi -mig 0 -i [[gpu_id]]
+
+  - trigger: :NV_smi_mig_list
+    label: nvidia-smi - list MIG instances
+    replace: nvidia-smi mig -lgi
+
+  - trigger: :NV_smi_mig_list_ci
+    label: nvidia-smi - list MIG compute instances
+    replace: nvidia-smi mig -lci
+
+  - trigger: :NV_smi_mig_create_gi
+    label: nvidia-smi - create MIG GPU instance
+    form: nvidia-smi mig -cgi [[profile_id]] -i [[gpu_id]]
+
+  - trigger: :NV_smi_mig_delete_gi
+    label: nvidia-smi - delete MIG GPU instance
+    form: nvidia-smi mig -dgi -gi [[gi_id]] -i [[gpu_id]]
+
+  - trigger: :NV_smi_mig_profiles
+    label: nvidia-smi - list available MIG profiles
+    replace: nvidia-smi mig -lgip
+
+  # nvidia-smi - NVLink
+  - trigger: :NV_smi_nvlink_status
+    label: nvidia-smi - show NVLink status
+    form: nvidia-smi nvlink -s -i [[gpu_id]]
+
+  - trigger: :NV_smi_nvlink_errors
+    label: nvidia-smi - show NVLink error counters
+    form: nvidia-smi nvlink -e -i [[gpu_id]]
+
+  - trigger: :NV_smi_nvlink_caps
+    label: nvidia-smi - show NVLink capabilities
+    form: nvidia-smi nvlink -c -i [[gpu_id]]
+
+  # nvidia-smi - Reset and Drain
+  - trigger: :NV_smi_reset
+    label: nvidia-smi - reset GPU
+    form: nvidia-smi --gpu-reset -i [[gpu_id]]
+
+  - trigger: :NV_smi_drain
+    label: nvidia-smi - drain GPU (remove from use)
+    form: nvidia-smi drain -p [[pci_bus_id]] -m 1
+
+  - trigger: :NV_smi_undrain
+    label: nvidia-smi - undrain GPU (restore to use)
+    form: nvidia-smi drain -p [[pci_bus_id]] -m 0
+
+  # DCGM - Discovery
+  - trigger: :DCGM_list
+    label: DCGM - list all GPUs
+    replace: dcgmi discovery -l
+
+  - trigger: :DCGM_list_verbose
+    label: DCGM - list GPUs verbose
+    replace: dcgmi discovery -i
+
+  # DCGM - Groups
+  - trigger: :DCGM_group_list
+    label: DCGM - list GPU groups
+    replace: dcgmi group -l
+
+  - trigger: :DCGM_group_create
+    label: DCGM - create GPU group
+    form: dcgmi group -c [[group_name]]
+
+  - trigger: :DCGM_group_delete
+    label: DCGM - delete GPU group
+    form: dcgmi group -d [[group_id]]
+
+  - trigger: :DCGM_group_add
+    label: DCGM - add GPU to group
+    form: dcgmi group -g [[group_id]] -a [[gpu_id]]
+
+  - trigger: :DCGM_group_info
+    label: DCGM - show group info
+    form: dcgmi group -g [[group_id]] -i
+
+  # DCGM - Diagnostics
+  - trigger: :DCGM_diag_quick
+    label: DCGM - run quick diagnostic (level 1)
+    form: dcgmi diag -g [[group_id]] -r 1
+
+  - trigger: :DCGM_diag_medium
+    label: DCGM - run medium diagnostic (level 2)
+    form: dcgmi diag -g [[group_id]] -r 2
+
+  - trigger: :DCGM_diag_long
+    label: DCGM - run long diagnostic (level 3)
+    form: dcgmi diag -g [[group_id]] -r 3
+
+  - trigger: :DCGM_diag_plugin
+    label: DCGM - run specific diagnostic plugin
+    form: dcgmi diag -g [[group_id]] -r [[plugin_name]]
+
+  # DCGM - Health
+  - trigger: :DCGM_health_set
+    label: DCGM - set health watches
+    form: dcgmi health -g [[group_id]] -s a
+
+  - trigger: :DCGM_health_check
+    label: DCGM - check group health
+    form: dcgmi health -g [[group_id]] -c
+
+  # DCGM - Job Statistics
+  - trigger: :DCGM_stats_enable
+    label: DCGM - enable job stats collection
+    form: dcgmi stats -g [[group_id]] -e
+
+  - trigger: :DCGM_stats_disable
+    label: DCGM - disable job stats collection
+    form: dcgmi stats -g [[group_id]] -d
+
+  - trigger: :DCGM_stats_start
+    label: DCGM - start collecting stats for job
+    form: dcgmi stats -g [[group_id]] -s [[job_id]]
+
+  - trigger: :DCGM_stats_stop
+    label: DCGM - stop collecting stats for job
+    form: dcgmi stats -g [[group_id]] -x [[job_id]]
+
+  - trigger: :DCGM_stats_view
+    label: DCGM - view stats for job
+    form: dcgmi stats -g [[group_id]] -j [[job_id]]
+
+  # DCGM - Field Groups and Monitoring
+  - trigger: :DCGM_fieldgroup_list
+    label: DCGM - list field groups
+    replace: dcgmi fieldgroup -l
+
+  - trigger: :DCGM_dmon
+    label: DCGM - device monitoring
+    form: dcgmi dmon -g [[group_id]] -d [[delay_ms]]
+
+  - trigger: :DCGM_dmon_fields
+    label: DCGM - device monitoring with specific fields
+    form: dcgmi dmon -g [[group_id]] -e [[field_ids]] -d [[delay_ms]]
+
+  # DCGM - Host Engine
+  - trigger: :DCGM_hostengine_start
+    label: DCGM - start host engine
+    replace: nv-hostengine
+
+  - trigger: :DCGM_hostengine_stop
+    label: DCGM - stop host engine
+    replace: nv-hostengine --term
+
+  # CUDA Compilation
+  - trigger: :NV_nvcc
+    label: NVIDIA - compile CUDA program
+    form: nvcc -o [[output]] [[source.cu]] -arch=sm_[[compute_cap]]
+
+  - trigger: :NV_nvcc_debug
+    label: NVIDIA - compile CUDA program with debug
+    form: nvcc -g -G -o [[output]] [[source.cu]] -arch=sm_[[compute_cap]]
+
+  - trigger: :NV_nvcc_version
+    label: NVIDIA - show NVCC version
+    replace: nvcc --version
+
+  # Miscellaneous
+  - trigger: :NV_bug_report
+    label: NVIDIA - generate bug report
+    replace: nvidia-bug-report.sh
+
+  - trigger: :NV_smi_xml
+    label: nvidia-smi - full XML output
+    replace: nvidia-smi -x -q
+
+  - trigger: :NV_smi_query_all
+    label: nvidia-smi - full detail query all GPUs
+    replace: nvidia-smi -q
