@@ -1,0 +1,144 @@
+---
+# PBS Pro text expansions
+matches:
+  # Job Submission
+  - trigger: :PBS_qsub
+    label: PBS - submit a job
+    form: >
+      qsub -q [[queue]] -A [[account]] -N [[job_name]] -l select=[[num_nodes]]:ncpus=[[cpus_per_node]]:mem=[[mem_per_node]] -t [[start_slot]]:[[end_slot]] [[script.sh]]
+
+  - trigger: :PBS_qsub_interactive
+    label: PBS - submit interactive job
+    form: >
+      qsub -q [[queue]] -A [[account]] -I -N [[job_name]] -l select=[[num_nodes]]:ncpus=[[cpus_per_node]]:mem=[[mem_per_node]]
+
+  - trigger: :PBS_qsub_mixed
+    label: PBS - submit mixed resource job
+    form: >
+      qsub -q [[queue]] -A [[account]] -N [[job_name]] -l select=[[hwc_nodes]]:ncpus=[[cpus]]:type=hw||[[sw_nodes]]:ncpus=[[cpus]]:type=sw -l place=pack [[script.sh]]
+
+  # Examining Queues
+  - trigger: :PBS_qstat
+    label: PBS - show queue status
+    replace: qstat -q
+
+  - trigger: :PBS_qstat_jobs
+    label: PBS - list all jobs
+    replace: qstat
+
+  - trigger: :PBS_qstat_user
+    label: PBS - list jobs for specific user
+    form: qstat -u [[username]]
+
+  - trigger: :PBS_qstat_account
+    label: PBS - list jobs for specific account
+    form: qstat -A [[account]]
+
+  - trigger: :PBS_qstat_full
+    label: PBS - show full job details
+    form: qstat -f [[job_id]]
+
+  - trigger: :PBS_qstat_json
+    label: PBS - list jobs in JSON format
+    replace: qstat -F json
+
+  # Listing Nodes
+  - trigger: :PBS_pbsnodes
+    label: PBS - list all nodes
+    replace: pbsnodes -a
+
+  - trigger: :PBS_pbsnodes_verbose
+    label: PBS - list nodes with verbose output
+    replace: pbsnodes -av
+
+  - trigger: :PBS_pbsnodes_state
+    label: PBS - filter nodes by state
+    form: pbsnodes -a | grep -A 20 '[[node_name]]'
+
+  - trigger: :PBS_pbsnodes_json
+    label: PBS - list nodes in JSON format
+    replace: pbsnodes -a -F json
+
+  - trigger: :PBS_pbsnodes_busy
+    label: PBS - list busy nodes
+    form: pbsnodes -a | grep -B 1 'state = busy'
+
+  - trigger: :PBS_pbsnodes_free
+    label: PBS - list free nodes
+    form: pbsnodes -a | grep -B 1 'state = free'
+
+  - trigger: :PBS_pbsnodes_offline
+    label: PBS - list offline nodes
+    form: pbsnodes -a | grep -B 1 'state = offline'
+
+  # Reserving Nodes
+  - trigger: :PBS_hold
+    label: PBS - hold a job (reserve resources)
+    form: qhold [[job_id]]
+
+  - trigger: :PBS_release
+    label: PBS - release a held job
+    form: qrel [[job_id]]
+
+  - trigger: :PBS_reserve_node
+    label: PBS - reserve a node with a dummy job
+    form: >
+      qsub -q [[queue]] -A [[account]] -N reserve_[[node_name]] -l select=1:ncpus=1:node=[[node_name]] -hold_jid NONE -q [[queue]] /bin/true
+
+  - trigger: :PBS_delete_reservation
+    label: PBS - delete reservation job
+    form: qdel [[job_id]]
+
+  - trigger: :PBS_qrerank
+    label: PBS - rerank queue
+    replace: qrerank
+
+  # Node Comments
+  - trigger: :PBS_comment_node
+    label: PBS - add comment to a node
+    form: >
+      qmgr -c "set server default Node [[node_name]] comment = \"[[comment]]\""
+
+  - trigger: :PBS_comment_node_delete
+    label: PBS - delete comment from a node
+    form: >
+      qmgr -c "delete server default Node [[node_name]] comment"
+
+  - trigger: :PBS_comment_job
+    label: PBS - add comment to a job
+    form: qmsg -j [[job_id]] "[[comment]]"
+
+  - trigger: :PBS_comment_server
+    label: PBS - add comment to server
+    form: >
+      qmgr -c "set server comment = \"[[comment]]\""
+
+  # Job Management
+  - trigger: :PBS_qdel
+    label: PBS - delete a job
+    form: qdel [[job_id]]
+
+  - trigger: :PBS_qdel_user
+    label: PBS - delete all jobs for a user
+    form: qdel -u [[username]]
+
+  - trigger: :PBS_qsig
+    label: PBS - send signal to job
+    form: qsig [[signal]] [[job_id]]
+
+  - trigger: :PBS_qmove
+    label: PBS - move job to different queue
+    form: qmove [[queue]] [[job_id]]
+
+  # Queue Management
+  - trigger: :PBS_qterm
+    label: PBS - terminate a queue
+    form: qterm [[queue_name]]
+
+  - trigger: :PBS_qstart
+    label: PBS - start a queue
+    form: qstart [[queue_name]]
+
+  - trigger: :PBS_qmgr_list
+    label: PBS - list queue configuration
+    replace: qmgr -c "list queue all"
